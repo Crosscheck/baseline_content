@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<field_collections>
+  <field_collection>
+    <name>Advanced EuroDOCSIS Fee 1 and 2</name>
+    <host_entity>Advanced EuroDOCSIS: Securing, Managing and Monitoring the EuroDOCSIS system</host_entity>
+    <participants>2</participants>
+    <price>350.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Advanced EuroDOCSIS Fee 3 to 6</name>
+    <host_entity>Advanced EuroDOCSIS: Securing, Managing and Monitoring the EuroDOCSIS system</host_entity>
+    <participants>6</participants>
+    <price>315.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Advanced EuroDOCSIS Fee 7 to 15</name>
+    <host_entity>Advanced EuroDOCSIS: Securing, Managing and Monitoring the EuroDOCSIS system</host_entity>
+    <participants>15</participants>
+    <price>280.00</price>
+  </field_collection>
+
+  <field_collection>
+    <name>Another Fee 1 and 2</name>
+    <host_entity>Another training title</host_entity>
+    <participants>2</participants>
+    <price>350.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Another Fee 3 to 6</name>
+    <host_entity>Another training title</host_entity>
+    <participants>6</participants>
+    <price>315.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Another Fee 7 to 15</name>
+    <host_entity>Another training title</host_entity>
+    <participants>15</participants>
+    <price>280.00</price>
+  </field_collection>
+
+  <field_collection>
+    <name>Another 2 Fee 1 and 2</name>
+    <host_entity>Another training title 2</host_entity>
+    <participants>2</participants>
+    <price>350.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Another 2 Fee 3 to 6</name>
+    <host_entity>Another training title 2</host_entity>
+    <participants>6</participants>
+    <price>315.00</price>
+  </field_collection>
+  <field_collection>
+    <name>Another 2 Fee 7 to 15</name>
+    <host_entity>Another training title 2</host_entity>
+    <participants>15</participants>
+    <price>280.00</price>
+  </field_collection>
+</field_collections>

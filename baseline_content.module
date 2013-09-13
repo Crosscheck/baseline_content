@@ -1,0 +1,179 @@
+<?php
+/**
+ * @file
+ * Provide baseline content using the Migrate module.
+ *
+ * This module provides a set of abstract migrations for importing baseline or
+ * test content into drupal. The following data types are supported:
+ *
+ * - Beans
+ * - Field Collections
+ * - File entities
+ * - Menu links
+ * - Nodes
+ * - Terms
+ */
+
+
+/**
+ * Implements hook_migrate_api().
+ */
+function baseline_content_migrate_api() {
+  $api = array(
+    'api' => 2,
+    'migrations' => array(
+      'BaselineContentFilesMigration' => array('class_name' => 'BaselineContentFilesMigration'),
+    ),
+  );
+  return $api;
+}
+
+
+/**
+ * Rollback a migrations.
+ *
+ * @param string $migration
+ *   The migration name.
+ */
+function baseline_content_rollback($migration) {
+  $migrations = migrate_migrations();
+  $migration_instance = $migrations[$migration];
+  $migration_instance->processRollback(array('force' => TRUE));
+}
+
+/**
+ * Replace import_source keys in media tokens by a working fid.
+ *
+ * Because fid are different per environment a import_source key has been
+ * introduced to media tokens, pointing to a file in the import/files directory.
+ * This key will be replaced by the fid of the file on the current environment.
+ *
+ * @param string $text
+ *   The text containing the media tokens.
+ *
+ * @return string
+ *   $text with fid in each media token replaced by the local value.
+ */
+function baseline_content_media_replace_fids($text) {
+  $text = preg_replace_callback(MEDIA_TOKEN_REGEX, 'baseline_content_media_token_filter', $text);
+  $text = preg_replace_callback(MEDIA_TOKEN_REGEX_ALT, 'baseline_content_media_token_filter', $text);
+  return $text;
+}
+
+/**
+ * Implements hook_filter_info_alter().
+ *
+ * Replace fids before filtering the output.
+ */
+function baseline_content_filter_info_alter(&$filters) {
+  $filters['media_filter']['prepare callback'] = 'baseline_content_media_replace_fids';
+}
+
+
+/**
+ * Implements hook_element_info_alter().
+ *
+ * Replace fids before loading the input in a textarea.
+ */
+function baseline_content_element_info_alter(&$types) {
+  // Replace fid's by the fid's from the current environment in text fields.
+  if (!isset($types['text_format']['#pre_render'])) {
+    $types['text_format']['#pre_render'] = array();
+  }
+  array_unshift($types['text_format']['#pre_render'], 'baseline_content_pre_render_text_format');
+}
+
+/**
+ * Replaces the fid of media tokens by the ones in the current environment.
+ */
+function baseline_content_pre_render_text_format($element) {
+  // filter_process_format() copies properties to the expanded 'value' child
+  // element.
+  if (!isset($element['format'])) {
+    return $element;
+  }
+
+  $element['value']['#value'] = baseline_content_media_replace_fids($element['value']['#value']);
+  return $element;
+}
+
+/**
+ * Replace import_source keys in media tokens by a working fid.
+ *
+ * @param string $match
+ *   Takes a match of tag code
+ * @param boolean $wysiwyg
+ *   Set to TRUE if called from within the WYSIWYG text area editor.
+ * @return
+ *   The HTML markup representation of the tag, or an empty string on failure.
+ *
+ * @see feature_excentis_import_media_replace_fid()
+ * @see media_token_to_markup()
+ * @see feature_excentis_import_media_filter()
+ */
+function baseline_content_media_token_filter($match) {
+  $settings = array();
+  $tag = $match[0];
+  $tag = urldecode($tag);
+  $tag = str_replace("[[", "", $tag);
+  $tag = str_replace("]]", "", $tag);
+
+  try {
+    if (!is_string($tag)) {
+      throw new Exception('Unable to find matching tag');
+    }
+
+    $tag_info = drupal_json_decode($tag);
+    // Replace the fid if there's an import_source.
+    if (isset($tag_info['import_source'])) {
+      $fid = baseline_content_get_fid($tag_info['import_source']);
+      if ($fid && $fid != $tag_info['fid']) {
+        $match[0] = str_replace('"fid":"' . $tag_info['fid'] . '"', '"fid":"' . $fid . '"', $match[0]);
+        $match[0] = str_replace('%22fid%22:%22' . $tag_info['fid'] . '%22', '%22fid%22:%22' . $fid . '%22', $match[0]);
+      }
+    }
+  }
+  catch (Exception $e) {
+    watchdog('media', 'Unable to render media from %tag. Error: %error', array('%tag' => $tag, '%error' => $e->getMessage()));
+    return '';
+  }
+
+  return $match[0];
+}
+
+/**
+ * Get the file id from a migration.
+ *
+ * @param string $filename
+ *   The source filename to fetch the fid for.
+ *
+ * @return int
+ *   The fid or 0 if no fid was found.
+ */
+function baseline_content_get_fid($filename) {
+  $filenames = &drupal_static(__FUNCTION__);
+
+  if (!isset($filenames[$filename])) {
+    $filenames[$filename] = 0;
+    $migrations = migrate_migrations();
+    $file_migration = $migrations['BaselineContentFilesMigration'];
+    if ($file = $file_migration->getMap()->getRowBySource(array($filename))) {
+      $filenames[$filename] = $file['destid1'];
+    }
+  }
+
+  return $filenames[$filename];
+}
+
+/**
+ * Attach node export code to a node object.
+ */
+function baseline_content_node_export_attach($code_string, &$node) {
+  $nodes = eval('return ' . $code_string . ';');
+  if (is_array($nodes)) {
+    $data = (array) array_shift($nodes);
+    foreach ($data as $property => $value) {
+      $node->$property = $value;
+    }
+  }
+}
