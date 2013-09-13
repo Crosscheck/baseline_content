@@ -15,7 +15,7 @@ abstract class BaselineContentBeanMigration extends Migration {
    * @param string $type
    *   The bean type to import to.
    */
-  public function __construct($import_file, $import_path, $type) {
+  public function __construct($import_file, $type) {
     parent::__construct();
     $this->description = t('Import bean blocks.');
 
