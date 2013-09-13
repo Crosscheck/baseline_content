@@ -7,7 +7,7 @@
  * See example data in examples/import/baseline_content_example.files.csv.
  */
 
-class BaselineContentFilesMigration extends Migration {
+abstract class BaselineContentFilesMigration extends Migration {
 
   /**
    * Path to the CSV file containing the file names to import, relative to the

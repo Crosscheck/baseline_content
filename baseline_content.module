@@ -14,21 +14,6 @@
  * - Terms
  */
 
-
-/**
- * Implements hook_migrate_api().
- */
-function baseline_content_migrate_api() {
-  $api = array(
-    'api' => 2,
-    'migrations' => array(
-      'BaselineContentFilesMigration' => array('class_name' => 'BaselineContentFilesMigration'),
-    ),
-  );
-  return $api;
-}
-
-
 /**
  * Rollback a migrations.
  *
