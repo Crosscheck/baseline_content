@@ -110,8 +110,8 @@ function baseline_content_media_token_filter($match) {
 
     $tag_info = drupal_json_decode($tag);
     // Replace the fid if there's an import_source.
-    if (isset($tag_info['import_source'])) {
-      $fid = baseline_content_get_fid($tag_info['import_source']);
+    if (isset($tag_info['import_source']) && isset($tag_info['migration'])) {
+      $fid = baseline_content_get_fid($tag_info['import_source'], $tag_info['migration']);
       if ($fid && $fid != $tag_info['fid']) {
         $match[0] = str_replace('"fid":"' . $tag_info['fid'] . '"', '"fid":"' . $fid . '"', $match[0]);
         $match[0] = str_replace('%22fid%22:%22' . $tag_info['fid'] . '%22', '%22fid%22:%22' . $fid . '%22', $match[0]);
@@ -131,19 +131,23 @@ function baseline_content_media_token_filter($match) {
  *
  * @param string $filename
  *   The source filename to fetch the fid for.
+ * @param string $migration
+ *   The name of the source migration.
  *
  * @return int
  *   The fid or 0 if no fid was found.
  */
-function baseline_content_get_fid($filename) {
+function baseline_content_get_fid($filename, $migration) {
   $filenames = &drupal_static(__FUNCTION__);
 
   if (!isset($filenames[$filename])) {
     $filenames[$filename] = 0;
     $migrations = migrate_migrations();
-    $file_migration = $migrations['BaselineContentFilesMigration'];
-    if ($file = $file_migration->getMap()->getRowBySource(array($filename))) {
-      $filenames[$filename] = $file['destid1'];
+    if (isset($migrations[$migration])) {
+      $file_migration = $migrations[$migration];
+      if ($file = $file_migration->getMap()->getRowBySource(array($filename))) {
+        $filenames[$filename] = $file['destid1'];
+      }
     }
   }
 
