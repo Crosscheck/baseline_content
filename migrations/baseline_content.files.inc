@@ -42,6 +42,12 @@ abstract class BaselineContentFilesMigration extends Migration {
     $this->files_path = $files_path;
     $this->description = t('Import files.');
 
+    $schema = MigrateDestinationFile::getKeySchema();
+    if (!empty($destination)) {
+      $destination_class = get_class($destination);
+      $schema = call_user_func(array($destination_class, 'getKeySchema'));
+    }
+
     $this->map = new MigrateSQLMap($this->machineName,
       array(
         'filename' => array(
@@ -50,7 +56,7 @@ abstract class BaselineContentFilesMigration extends Migration {
           'not null' => TRUE,
         ),
       ),
-      MigrateDestinationFile::getKeySchema()
+      $schema
     );
 
     $this->source = new MigrateSourceCSV($this->import_path, $this->csvcolumns(), array('header_rows' => 1));
