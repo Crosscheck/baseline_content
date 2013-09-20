@@ -31,8 +31,11 @@ abstract class BaselineContentFilesMigration extends Migration {
    *   drupal directory. Note that
    * @param string $files_path
    *   Path to the directory containing the files that will be imported.
+   * @param object $destination
+   *   An optional Migrate destination object. Defaults to
+   *   MigrateDestinationFile.
    */
-  public function __construct($import_path, $files_path) {
+  public function __construct($import_path, $files_path = '', $destination = NULL) {
     parent::__construct();
 
     $this->import_path = $import_path;
@@ -51,7 +54,12 @@ abstract class BaselineContentFilesMigration extends Migration {
     );
 
     $this->source = new MigrateSourceCSV($this->import_path, $this->csvcolumns(), array('header_rows' => 1));
-    $this->destination = new MigrateDestinationFile();
+
+    $this->destination = $destination;
+    if (empty($destination)) {
+      $this->destination = new MigrateDestinationFile();
+    }
+
     $this->addFieldMapping('value', 'filepath');
   }
 
@@ -59,8 +67,11 @@ abstract class BaselineContentFilesMigration extends Migration {
    * Implements prepareRow().
    */
   public function prepareRow($row) {
-    // Set the file path for image import.
-    $row->filepath = $this->files_path . '/' . $row->filename;
+    $row->filepath = $row->filename;
+    // Prepend the files path if we're importing from the file system.
+    if (strpos($row->filename, '://') === FALSE) {
+      $row->filepath = $this->files_path . '/' . $row->filepath;
+    }
   }
 
   function csvcolumns() {
