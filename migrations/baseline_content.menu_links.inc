@@ -39,7 +39,7 @@ class BaselineContentMenuLinksMigration extends Migration {
     $this->addFieldMapping('link_title', 'link_title');
     $this->addFieldMapping('weight', 'weight');
     $this->addFieldMapping('module', 'module');
-    $this->addFieldMapping('plid', 'parent')->sourceMigration(array(get_class($this)));
+    $this->addFieldMapping('plid', 'parent')->sourceMigration(array($this->machineName));
     if (!empty($content_source)) {
       $this->addFieldMapping('node', 'node')->sourceMigration(array($content_source));
     }
