@@ -28,6 +28,12 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
   protected $host_type;
 
   /**
+   * Name of the migration containing the host entities.
+   * @var string
+   */
+  protected $host_migration;
+
+  /**
    * Migration constructor.
    *
    * @param string $file
@@ -37,11 +43,14 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
    * @param string $source
    *   The name of the source class containing the nodes this field collection
    *   will be attached to.
+   * @param string $host_type
+   *   The host entity type (defaults to 'node').
    */
   public function __construct($import_file, $type, $source, $host_type = 'node') {
     parent::__construct();
     $this->dependencies[] = $source;
     $this->host_type = $host_type;
+    $this->host_migration = $source;
 
     $file = DRUPAL_ROOT . '/' . $import_file;
     $fields = $this->getSourceFields();
@@ -64,7 +73,7 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
     );
 
     // Attach the field collection data
-    $this->addFieldMapping('host_entity_id', 'host_entity')->xpath('host_entity')->sourceMigration($source);
+    $this->addFieldMapping('host_entity_id', 'host_entity')->xpath('host_entity')->sourceMigration($this->host_migration);
   }
 
   /**
@@ -75,5 +84,18 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
       'name'          => t('Machine name'),
       'host_entity'   => t('Host entity machine name'),
     );
+  }
+
+  /**
+   * Overrides Migration::handleSourceMigration().
+   *
+   * Make sure the host_entity_id is not an array.
+   */
+  protected function handleSourceMigration($source_migrations, $source_keys, $default = NULL, $migration = NULL) {
+    $return_keys = parent::handleSourceMigration($source_migrations, $source_keys, $default, $migration);
+    if ($this->host_type == 'bean' && $this->host_migration == $source_migrations) {
+      $return_keys = isset($return_keys['destid2']) ? $return_keys['destid2'] : $return_keys;
+    }
+    return $return_keys;
   }
 }
