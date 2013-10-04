@@ -22,6 +22,12 @@
 abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
 
   /**
+   * Entity type of the field collection host.
+   * @var string
+   */
+  protected $host_type;
+
+  /**
    * Migration constructor.
    *
    * @param string $file
@@ -32,9 +38,10 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
    *   The name of the source class containing the nodes this field collection
    *   will be attached to.
    */
-  public function __construct($import_file, $type, $source) {
+  public function __construct($import_file, $type, $source, $host_type = 'node') {
     parent::__construct();
-    $this->dependencies = array($source);
+    $this->dependencies[] = $source;
+    $this->host_type = $host_type;
 
     $file = DRUPAL_ROOT . '/' . $import_file;
     $fields = $this->getSourceFields();
@@ -42,7 +49,7 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
 
     $this->destination = new MigrateDestinationFieldCollection(
       $type,
-      array('host_entity_type' => 'node')
+      array('host_entity_type' => $this->host_type)
     );
 
     $this->map = new MigrateSQLMap($this->machineName,
