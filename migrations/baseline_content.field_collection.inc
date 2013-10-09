@@ -94,7 +94,7 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
   protected function handleSourceMigration($source_migrations, $source_keys, $default = NULL, $migration = NULL) {
     $return_keys = parent::handleSourceMigration($source_migrations, $source_keys, $default, $migration);
     if ($this->host_type == 'bean' && $this->host_migration == $source_migrations) {
-      $return_keys = isset($return_keys['destid2']) ? $return_keys['destid2'] : $return_keys;
+      $return_keys = isset($return_keys['destid1']) ? $return_keys['destid1'] : $return_keys;
     }
     return $return_keys;
   }
