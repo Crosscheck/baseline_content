@@ -60,7 +60,7 @@ abstract class BaselineContentBeanMigration extends Migration {
       'status' => 1,
       'weight' => 0,
       'region' => isset($source_row->region) ? $source_row->region : BLOCK_REGION_NONE,
-      'title' => '<none>',
+      'title' => $source_row->title,
       'pages' => isset($source_row->pages) ? $source_row->pages : '',
       'visibility' => isset($source_row->visibility) ? $source_row->visibility : 0,
       'cache' => 1,
