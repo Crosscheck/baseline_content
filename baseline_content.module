@@ -40,7 +40,9 @@ function baseline_content_rollback($migration) {
  *   $text with fid in each media token replaced by the local value.
  */
 function baseline_content_media_replace_fids($text) {
-  $text = preg_replace_callback(MEDIA_WYSIWYG_TOKEN_REGEX, 'baseline_content_media_token_filter', $text);
+  if (module_exists('media_wysiwyg')) {
+    $text = preg_replace_callback(MEDIA_WYSIWYG_TOKEN_REGEX, 'baseline_content_media_token_filter', $text);
+  }
   return $text;
 }
 
