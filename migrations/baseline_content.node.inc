@@ -45,12 +45,12 @@ abstract class BaselineContentNodeMigration extends BaselineContentXMLMigration 
     $this->destination = new MigrateDestinationNode($type);
 
     $this->addFieldMapping('uid', 'uid')->defaultValue(1);
-    $this->addFieldMapping('sticky', 'sticky')->defaultValue(0)->xpath('sticky');
-    $this->addFieldMapping('promote', 'promote')->defaultValue(0)->xpath('promote');
     $this->addFieldMapping('status', 'status')->defaultValue(1);
-    $this->addFieldMapping('title', 'title')->xpath('title');
-    $this->addFieldMapping('node_export', 'node_export')->xpath('node_export');
-    $this->addFieldMapping('nodequeue', 'nodequeue')->xpath('nodequeue');
+    $this->addXMLFieldMapping('sticky')->defaultValue(0);
+    $this->addXMLFieldMapping('promote')->defaultValue(0);
+    $this->addXMLFieldMapping('title');
+    $this->addXMLFieldMapping('node_export');
+    $this->addXMLFieldMapping('nodequeue');
   }
 
   /**

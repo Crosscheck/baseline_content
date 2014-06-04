@@ -54,7 +54,10 @@ abstract class BaselineContentXMLMigration extends XMLMigration {
    * @param string $element
    *   The XML element name.
    */
-  protected function addXMLFieldMapping($field_name, $element, $xpath = NULL) {
+  protected function addXMLFieldMapping($field_name, $element = NULL, $xpath = NULL) {
+    if (is_null($element)) {
+      $element = $field_name;
+    }
     if (is_null($xpath)) {
       $xpath = $element;
     }
