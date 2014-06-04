@@ -15,7 +15,7 @@
  * - node_export XML element to load additional exported node data. Useful
  *   with webforms.
  */
-abstract class BaselineContentNodeMigration extends XMLMigration {
+abstract class BaselineContentNodeMigration extends BaselineContentXMLMigration {
 
 
   /**
@@ -28,7 +28,7 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
    *   The node type to import to.
    */
   public function __construct($import_file, $type) {
-    parent::__construct();
+    parent::__construct($import_file, '/nodes/node', 'title');
     $this->description = t('Import nodes.');
 
     $this->map = new MigrateSQLMap($this->machineName,
@@ -42,9 +42,6 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
       MigrateDestinationNode::getKeySchema()
     );
 
-    $file = DRUPAL_ROOT . '/' . $import_file;
-    $fields = $this->getSourceFields();
-    $this->source = new MigrateSourceXML($file, '/nodes/node', 'title', $fields);
     $this->destination = new MigrateDestinationNode($type);
 
     $this->addFieldMapping('uid', 'uid')->defaultValue(1);
@@ -89,38 +86,5 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
       $context = array('qids' => $qids);
       nodequeue_add_action($entity, $context);
     }
-  }
-
-  /**
-   * Map an XML element to a drupal field.
-   *
-   * @param string $field_name
-   *   The drupal field name.
-   * @param string $element
-   *   The XML element name.
-   */
-  protected function addXMLFieldMapping($field_name, $element, $xpath = NULL) {
-    if (is_null($xpath)) {
-      $xpath = $element;
-    }
-    $this->addFieldMapping($field_name, $element)->xpath($element);
-  }
-
-  /**
-   * Map an XML element to a drupal term reference field.
-   *
-   * @param string $field_name
-   *   The drupal field name.
-   * @param string $element
-   *   The XML element name.
-   * @param string $source
-   *   The name of the source migration of the term.
-   */
-  protected function addXMLTermFieldMapping($field_name, $element, $source) {
-    $this->addFieldMapping($field_name, $element)
-      ->xpath($element)
-      ->separator(',')
-      ->sourceMigration($source);
-    $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
   }
 }
