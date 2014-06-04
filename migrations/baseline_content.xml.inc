@@ -58,7 +58,7 @@ abstract class BaselineContentXMLMigration extends XMLMigration {
     if (is_null($xpath)) {
       $xpath = $element;
     }
-    $this->addFieldMapping($field_name, $element)->xpath($element);
+    return $this->addFieldMapping($field_name, $element)->xpath($element);
   }
 
   /**
@@ -72,10 +72,12 @@ abstract class BaselineContentXMLMigration extends XMLMigration {
    *   The name of the source migration of the term.
    */
   protected function addXMLTermFieldMapping($field_name, $element, $source) {
-    $this->addFieldMapping($field_name, $element)
+    $mapping = $this->addFieldMapping($field_name, $element)
       ->xpath($element)
       ->separator(',')
       ->sourceMigration($source);
     $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
+
+    return $mapping;
   }
 }
