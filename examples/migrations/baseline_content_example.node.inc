@@ -25,6 +25,9 @@ class BaselineContentExampleNodeMigration extends BaselineContentNodeMigration {
       'ExcentisImportResourceNodes',
     );
 
+    $this->addFieldMapping('body', 'body')->xpath('body');
+    $this->addFieldMapping('body:format')->defaultValue('full_html');
+
     $this->addFieldMapping('field_taxonomy_division', 'division')
       ->xpath('division')
       ->sourceMigration('ExcentisImportDivisions');

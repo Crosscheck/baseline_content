@@ -53,9 +53,7 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
     $this->addFieldMapping('status', 'status')->defaultValue(1);
     $this->addFieldMapping('title', 'title')->xpath('title');
     $this->addFieldMapping('node_export', 'node_export')->xpath('node_export');
-    $this->addFieldMapping('body', 'body')->xpath('body');
     $this->addFieldMapping('nodequeue', 'nodequeue')->xpath('nodequeue');
-    $this->addFieldMapping('body:format')->defaultValue('full_html');
   }
 
   /**
@@ -63,7 +61,6 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
    */
   protected function getSourceFields() {
     return array(
-      'body'          => t('Body'),
       'title'         => t('Title'),
       'nodequeue'     => t('Nodequeue'),
       'node_export'   => t('Node Export'),
