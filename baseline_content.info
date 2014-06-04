@@ -6,6 +6,7 @@ dependencies[] = migrate_extras
 files[] = migrations/baseline_content.xml.inc
 files[] = migrations/baseline_content.files.inc
 files[] = migrations/baseline_content.bean.inc
+files[] = migrations/baseline_content.bean_xml.inc
 files[] = migrations/baseline_content.field_collection.inc
 files[] = migrations/baseline_content.node.inc
 files[] = migrations/baseline_content.menu_links.inc

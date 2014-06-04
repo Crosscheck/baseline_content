@@ -56,7 +56,7 @@ abstract class BaselineContentNodeMigration extends BaselineContentXMLMigration 
   /**
    * Returns an array of resource field definitions.
    */
-  protected function getSourceFields($key) {
+  protected function getSourceFields() {
     return array(
       'title'         => t('Title'),
       'nodequeue'     => t('Nodequeue'),

@@ -39,12 +39,13 @@ abstract class BaselineContentXMLMigration extends XMLMigration {
 
   /**
    * Returns an array of resource field definitions.
+   *
+   * @return array
+   *   Either an array of XML element names that will be used to map, or an
+   *   associative array with the key being the XML element and the value the
+   *   translated description of the XML element.
    */
-  protected function getSourceFields($key) {
-    return array(
-      $key => t('Key'),
-    );
-  }
+  abstract protected function getSourceFields();
 
   /**
    * Map an XML element to a drupal field.
