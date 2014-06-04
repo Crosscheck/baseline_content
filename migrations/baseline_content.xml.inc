@@ -34,7 +34,7 @@ abstract class BaselineContentXMLMigration extends XMLMigration {
 
     $this->import_file = DRUPAL_ROOT . '/' . $import_file;
     $fields = $this->getSourceFields($key);
-    $this->source = new MigrateSourceXML($file, $item_path, $key, $fields);
+    $this->source = new MigrateSourceXML($this->import_file, $item_path, $key, $fields);
   }
 
   /**
