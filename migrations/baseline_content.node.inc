@@ -90,4 +90,37 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
       nodequeue_add_action($entity, $context);
     }
   }
+
+  /**
+   * Map an XML element to a drupal field.
+   *
+   * @param string $field_name
+   *   The drupal field name.
+   * @param string $element
+   *   The XML element name.
+   */
+  protected function addXMLFieldMapping($field_name, $element, $xpath = NULL) {
+    if (is_null($xpath)) {
+      $xpath = $element;
+    }
+    $this->addFieldMapping($field_name, $element)->xpath($element);
+  }
+
+  /**
+   * Map an XML element to a drupal term reference field.
+   *
+   * @param string $field_name
+   *   The drupal field name.
+   * @param string $element
+   *   The XML element name.
+   * @param string $source
+   *   The name of the source migration of the term.
+   */
+  protected function addXMLTermFieldMapping($field_name, $element, $source) {
+    $this->addFieldMapping($field_name, $element)
+      ->xpath($element)
+      ->separator(',')
+      ->sourceMigration($source);
+    $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
+  }
 }
