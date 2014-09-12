@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<panels>
+    <panel>
+        <id>publications</id>
+        <arguments>
+            <source_infobox>
+                <title>Useful info from customer service</title>
+                <handler>page_publications_panel_context</handler>
+                <pane_id>new-79dbeba6-9178-4d14-8f78-7e3ed6586f31</pane_id>
+            </source_infobox>
+        </arguments>
+    </panel>
+    <panel>
+        <id>frequently_asked_questions</id>
+        <arguments>
+            <source_infobox>
+                <title>Useful info from customer service</title>
+                <handler>page_frequently_asked_questions_panel_context</handler>
+                <pane_id>new-e14165ed-3df2-4563-8cc1-b99bd034b3eb</pane_id>
+            </source_infobox>
+        </arguments>
+    </panel>
+</panels>
