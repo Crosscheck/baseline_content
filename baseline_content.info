@@ -7,5 +7,7 @@ files[] = migrations/baseline_content.files.inc
 files[] = migrations/baseline_content.bean.inc
 files[] = migrations/baseline_content.field_collection.inc
 files[] = migrations/baseline_content.node.inc
+files[] = migrations/baseline_content.panel.inc
 files[] = migrations/baseline_content.menu_links.inc
 files[] = migrations/baseline_content.terms.inc
+files[] = plugins/panel.inc
