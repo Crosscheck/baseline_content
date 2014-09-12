@@ -14,6 +14,52 @@
  * - Terms
  */
 
+include('files/baseline_content.panelizer.inc');
+
+function baseline_content_permission() {
+  return array(
+    'export panelizer settings' => array(
+      'title' => t('Export Panelizer settings'),
+      'description' => t('Allows the user to generate an export of the specified Default and Entity panelizer settings, for re-import via XML. This permission should only be granted to developers.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function baseline_content_menu() {
+  $items = array();
+  $items['admin/config/content/baseline_content'] = array(
+    'title' => 'Baseline content',
+    'description' => 'Baseline content functionality.',
+    'position' => 'left',
+    'page callback' => 'system_admin_menu_block_page',
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'access arguments' => array('access administration pages'),
+  );
+  $items['admin/config/content/baseline_content/panelizer'] = array(
+    'title' => 'Export panelizer settings',
+    'description' => 'Generates an XML file that can be used for re-import.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('baseline_content_panelizer_input_form'),
+    'access arguments' => array('export panelizer settings'),
+  );
+  $items['admin/config/content/baseline_content/panelizer/export'] = array(
+    'type' => MENU_CALLBACK,
+    'title'=>'Panelizer export',
+    'access arguments' => array('export panelizer settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('baseline_content_panelizer_export_form'),
+  );
+  return $items;
+}
+
+function baseline_content_xml_add_single(&$default_output, $tag, $value) {
+  $default_output[] = '<' . $tag . '>' . $value . '</' . $tag . '>';
+}
+
 /**
  * Rollback a migrations.
  *
