@@ -41,6 +41,9 @@ abstract class BaselineContentPanelMigration extends XMLMigration {
     $fields = $this->getSourceFields();
     $this->source = new MigrateSourceXML($file, '/panels/panel', 'id', $fields);
     $this->destination = new MigrateDestinationPanel();
+
+    $this->addFieldMapping('panel_export', 'panel_export')->xpath('panel_export');
+    $this->addFieldMapping('panel_type', 'panel_type')->xpath('panel_type');
   }
 
   /**
@@ -49,9 +52,8 @@ abstract class BaselineContentPanelMigration extends XMLMigration {
   protected function getSourceFields() {
     return array(
       'id'          => t('ID'),
-      'arguments'          => t('Arguments'),
+      'panel_type'          => t('Panel type (panel/mini)'),
+      'panel_export'          => t('Panel export'),
     );
   }
-
-  abstract function getPanel($id);
 }

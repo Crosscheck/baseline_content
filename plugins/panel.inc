@@ -12,7 +12,8 @@ class MigrateDestinationPanel extends MigrateDestination {
   public function fields() {
     return array(
       'id' => t('ID'),
-      'arguments' => t('Arguments'),
+      'panel_type'          => t('Panel type (panel/mini)'),
+      'panel_export'          => t('Panel export'),
     );
   }
 
@@ -33,8 +34,6 @@ class MigrateDestinationPanel extends MigrateDestination {
     // load API functions.
     require_once drupal_get_path('module', 'page_manager') . '/plugins/tasks/page.inc';
     foreach ($panel_names as $panel_name) {
-      // Store a $deleted boolean to make sure we're only executing
-      // the delete operation once for this (mini) panel.
       $deleted = FALSE;
       if (!$deleted && module_exists('panels')) {
         if ($existing_page = page_manager_page_load($panel_name)) {
@@ -55,54 +54,55 @@ class MigrateDestinationPanel extends MigrateDestination {
    * Import a single panel.
    */
   public function import(stdClass $object, stdClass $row) {
-    // sourceMigration() has already taken place at this point.
-    // Data retrieved this way is stored in the $object, while the
-    // $row still contains the title/ID before the sourceMigration()
-    // process.
-    // Since we'll be retrieving the panel page from the database later,
-    // the sourceMigration() ID will get lost. To prevent this from
-    // happening, we'll store the IDs in the $row.
-    // Note that this means that, as far as Panels are concerned,
-    // the implementation deviates slightly from standard Migrate behavior.
-    foreach ($object as $field => $value) {
-      $row->$field = $value;
-    }
 
     // load API functions.
     require_once drupal_get_path('module', 'page_manager') . '/plugins/tasks/page.inc';
 
     $panel_name = '' . $row->xml->id;
 
-    $migration = Migration::currentMigration();
+    // Get the exported panel and append it with "return $page" to assign it to a variable.
+    $panel_code = $row->panel_export . ' return $page;';
+    // Remove newlines.
+    // TODO: do not remove newlines in custom textfields.
+    $panel_code = trim(preg_replace('/\s\s+/', ' ', $panel_code));
+    // Execute the exported panel as PHP code, giving us an object that represents the panel.
+    $panel = eval($panel_code);
 
-    $panel_data = $migration->getPanel($panel_name);
-    $page = $panel_data['panel'];
-    $type = $panel_data['type'];
-    $object = $page;
-    $this->prepare($page, $row);
+    $type = $row->panel_type;
+    $this->prepare($panel, $row);
 
     if ($type == 'panel' && module_exists('panels')) {
-      // If the page already exists, delete it and re-create it.
+      // If the page already exists, get its ID.
       if ($existing_page = page_manager_page_load($panel_name)) {
-        page_manager_page_delete($existing_page);
+        $panel->pid = $existing_page->pid;
       }
 
-      if (!empty($page)) {
+      if (!empty($panel)) {
         // save the updated page object into DB.
-        $page = page_manager_page_save($page);
-        $this->numCreated++;
+        $panel = page_manager_page_save($panel);
+        if (empty($existing_page)) {
+          $this->numCreated++;
+        }
+        else {
+          $this->numUpdated++;
+        }
       }
     }
     else if ($type == 'mini' && module_exists('panels_mini')) {
-      // If the page already exists, delete it and re-create it.
+      // If the page already exists, get its ID.
       if ($existing_page = panels_mini_load($panel_name)) {
-        panels_mini_delete($existing_page);
+        $panel->pid = $existing_page->pid;
       }
 
-      if (!empty($page)) {
+      if (!empty($panel)) {
         // save the updated page object into DB.
-        $page = panels_mini_save($page);
-        $this->numCreated++;
+        $panel = panels_mini_save($panel);
+        if (empty($existing_page)) {
+          $this->numCreated++;
+        }
+        else {
+          $this->numUpdated++;
+        }
       }
     }
     return array($panel_name);
