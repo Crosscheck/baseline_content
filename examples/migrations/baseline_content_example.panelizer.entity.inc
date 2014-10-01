@@ -1,17 +1,25 @@
 <?php
 
-class BaselineContentExamplePanelizerEntityMigration extends BaselineContentPanelizerEntityMigration {
+/**
+ * @file
+ * Infobox CT migration.
+ */
+
+class FooContentPanelizerEntity extends BaselineContentPanelizerEntityMigration {
 
 
   public function __construct() {
-    $module_path = drupal_get_path('module', 'baseline_content_example');
-    $import_path = $module_path . '/examples/import/baseline_content_example.panelizer.entity.xml';
+    $module_path = drupal_get_path('module', 'foo_content');
+    $import_path = $module_path . '/import/foo_content.panelizer.entity.xml';
     parent::__construct($import_path);
     $this->description = t('Import Panelizer entity settings.');
 
     $this->dependencies = array(
-      'BaselineContentExamplePanelizerDefaultMigration',
-      'BaselineContentExampleNodeMigration',
+      'FooContentPanelizerDefault',
+      'FooContentNodeLandingpage',
+      'FooContentNodeThemepage',
+      'FooContentNodePage',
+      'FooContentNodeArticle',
     );
 
     $this->addFieldMapping('entity_title', 'entity_title')

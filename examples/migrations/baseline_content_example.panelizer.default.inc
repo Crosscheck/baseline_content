@@ -1,10 +1,16 @@
 <?php
 
-class BaselineContentExamplePanelizerDefaultMigration extends BaselineContentPanelizerDefaultMigration {
+/**
+ * @file
+ * Infobox CT migration.
+ */
+
+class FooContentPanelizerDefault extends BaselineContentPanelizerDefaultMigration {
+
 
   public function __construct() {
-    $module_path = drupal_get_path('module', 'baseline_content_example');
-    $import_path = $module_path . '/examples/import/baseline_content_example.panelizer.default.xml';
+    $module_path = drupal_get_path('module', 'foo_content');
+    $import_path = $module_path . '/import/foo_content.panelizer.default.xml';
     parent::__construct($import_path);
     $this->description = t('Import Panelizer default settings.');
 
