@@ -69,6 +69,10 @@ class MigrateDestinationPanel extends MigrateDestination {
     $panel = eval($panel_code);
 
     $type = $row->panel_type;
+    // Merge import arguments with Panel.
+    foreach ($object as $field => $value) {
+      $panel->{$field} = $value;
+    }
     $this->prepare($panel, $row);
 
     if ($type == 'panel' && module_exists('panels')) {
