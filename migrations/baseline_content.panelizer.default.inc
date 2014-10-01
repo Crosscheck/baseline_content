@@ -26,6 +26,8 @@ abstract class BaselineContentPanelizerDefaultMigration extends XMLMigration {
     $fields = $this->getSourceFields();
     $this->source = new MigrateSourceXML($file, '/panelizer/panelize', 'description', $fields);
     $this->destination = new MigrateDestinationPanelizerDefault();
+
+    $this->addFieldMapping('panelizer_defaults_export', 'panelizer_defaults_export')->xpath('panelizer_defaults_export');
   }
 
   /**
@@ -34,8 +36,7 @@ abstract class BaselineContentPanelizerDefaultMigration extends XMLMigration {
   protected function getSourceFields() {
     return array(
       'description'          => t('Description'),
-      'panel_settings'          => t('Panel settings'),
-      'panelizer_settings'          => t('Panelizer settings'),
+      'panelizer_defaults_export'          => t('Panelizer Defaults Export'),
     );
   }
 }

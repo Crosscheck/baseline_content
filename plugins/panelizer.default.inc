@@ -26,107 +26,57 @@ class MigrateDestinationPanelizerDefault extends MigrateDestination {
   /**
    * Delete Panelizer Default settings.
    */
-  public function rollback(array $panel_ids) {
-    foreach ($panel_ids as $panel_id) {
+  public function rollback(array $panelizer_names) {
+    foreach ($panelizer_names as $panelizer_name) {
       // Unset any variables that may have been set during import.
-      $variable_string = variable_get('baseline_content_variables_for_panel_' . $panel_id, '');
-      if (!empty($variable_string)) {
-        $variables = explode(',', $variable_string);
-        foreach ($variables as $variable) {
-          variable_del($variable);
-        }
-        variable_del('baseline_content_variables_for_panel_' . $panel_id);
-      }
-      db_delete('panelizer_defaults')
-        ->condition('did', $panel_id)
-        ->execute();
-      db_delete('panels_pane')
-        ->condition('did', $panel_id)
-        ->execute();
-      db_delete('panels_display')
-        ->condition('did', $panel_id)
-        ->execute();
+      // panelizer_defaults_node_article
+      $variable_key_parts = explode(":", $panelizer_name);
+      $variable_key = 'panelizer_defaults_' . $variable_key_parts[0] . '_' . $variable_key_parts[1];
+      variable_del($variable_key);
+      $this->delete_panelizer_defaults($panelizer_name);
     }
   }
 
   /**
-   * Import a single panel.
+   * Import a single panelizer default configuration.
    */
   public function import(stdClass $object, stdClass $row) {
 
-    // Updates aren't entirely supported yet, so rollback any previous
-    // migrations first.
-    if (!empty($row->migrate_map_destid1)) {
-      $this->rollback(array($row->migrate_map_destid1));
-    }
-    $panelizer_description = '' . $row->xml->description;
+    $panelizer_name = '' . $row->xml->description;
 
-    $migration = Migration::currentMigration();
+    // Get the exported panelizer and append it with "return $page" to assign it to a variable.
+    $panelizer_code = $row->panelizer_defaults_export . ' return $panelizer;';
+    // Remove newlines.
+    // TODO: do not remove newlines in custom textfields.
+    $panelizer_code = trim(preg_replace('/\s\s+/', ' ', $panelizer_code));
+    // Execute the exported panel as PHP code, giving us an object that represents the panel.
+    $panelizer = eval($panelizer_code);
 
-    $this->prepare($object, $row);
-
-    $fields = array(
-      'panels_display' => array(),
-      'panels_pane' => array(),
-      'panelizer_defaults' => array(),
-    );
-    // Insert the panel display.
-    $panels_display_columns = (array) $row->xml->panel_settings->panels_display;
-    foreach ($panels_display_columns as $column_name => $value) {
-      $fields['panels_display'][$column_name] = $value;
-    }
-    $did = db_insert('panels_display')
-      ->fields($fields['panels_display'])
-      ->execute();
-
-    // This gives us a panel ID which we need for the panel panes.
-    $panes = (array) $row->xml->panel_settings->panels_pane;
-    foreach ($panes['pane'] as $pane) {
-      $id = count($fields['panels_pane']);
-      $fields['panels_pane'][$id] = array();
-      $pane_fields = (array) $pane;
-      foreach ($pane as $column_name => $value) {
-        $fields['panels_pane'][$id][$column_name] = $value;
-      }
-      $fields['panels_pane'][$id]['did'] = $did;
-      db_insert('panels_pane')
-        ->fields($fields['panels_pane'][$id])
-        ->execute();
-    }
-    // The panel ID also lets us insert the Panelizer defaults.
-    $panelizer_defaults_columns = (array) $row->xml->panelizer_settings->panelizer_defaults;
-    foreach ($panelizer_defaults_columns as $column_name => $value) {
-      $fields['panelizer_defaults'][$column_name] = $value;
-    }
-    $fields['panelizer_defaults']['did'] = $did;
-    db_insert('panelizer_defaults')
-      ->fields($fields['panelizer_defaults'])
-      ->execute();
-
-    // Set the panel's default settings.
-    if (!empty($row->xml->variables)) {
-      foreach ($row->xml->variables as $variables) {
-        $array = (array) $variables;
-        foreach ($array as $name => $variable) {
-          $variable = unserialize($variable);
-          variable_set($name, $variable);
-
-          // Set a variable to point to the imported panel's variables. This
-          // is needed to unset these variables upon rollback.
-          // TODO: refactor so an extra variable isn't needed.
-          $old_variable = variable_get('baseline_content_variables_for_panel_' . $did, '');
-          if (!empty($old_variable)) {
-            $old_variable = $old_variable . ',';
+    $this->prepare($panelizer, $row);
+    // If the page already exists, delete it.
+    $panelizer_deleted = $this->delete_panelizer_defaults($panelizer_name);
+    if (!empty($panelizer)) {
+      // save the updated page object into DB.
+      panelizer_export_save_callback($panelizer);
+      // TODO: figure out why this variable isn't exported through the export UI, and see if there's a way
+      // to remove it from the import file.
+      if (!empty($row->xml->variables)) {
+        foreach ($row->xml->variables as $variables) {
+          $array = (array) $variables;
+          foreach ($array as $name => $variable) {
+            $variable = unserialize($variable);
+            variable_set($name, $variable);
           }
-          $new_variable = $old_variable . $name;
-          variable_set('baseline_content_variables_for_panel_' . $did, $new_variable);
         }
       }
+      if (!$panelizer_deleted) {
+        $this->numCreated++;
+      }
+      else {
+        $this->numUpdated++;
+      }
     }
-
-    $this->numCreated++;
-
-    return array($did);
+    return array($panelizer_name);
   }
 
   public function prepare(stdClass $object, stdClass $row) {
@@ -152,5 +102,18 @@ class MigrateDestinationPanelizerDefault extends MigrateDestination {
    */
   public function __toString() {
     return 'MigrateDestinationPanelizerDefault';
+  }
+
+  /**
+   * @param $panelizer_name
+   * @return boolean Whether or not the delete was successful.
+   */
+  private function delete_panelizer_defaults($panelizer_name) {
+    $existing_panelizer = panelizer_context_cache_get('default', $panelizer_name);
+    if (!empty($existing_panelizer->pnid)) {
+      panelizer_export_delete_callback($existing_panelizer);
+      return TRUE;
+    }
+    return FALSE;
   }
 }

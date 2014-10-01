@@ -26,6 +26,8 @@ abstract class BaselineContentPanelizerEntityMigration extends XMLMigration {
     $fields = $this->getSourceFields();
     $this->source = new MigrateSourceXML($file, '/panelizer/panelize', 'description', $fields);
     $this->destination = new MigrateDestinationPanelizerEntity();
+
+    $this->addFieldMapping('panelizer_entity_export', 'panelizer_entity_export')->xpath('panelizer_entity_export');
   }
 
   /**
@@ -35,8 +37,7 @@ abstract class BaselineContentPanelizerEntityMigration extends XMLMigration {
     return array(
       'description'          => t('Description'),
       'entity_title'          => t('Entity title'),
-      'panel_settings'          => t('Panel settings'),
-      'panelizer_settings'          => t('Panelizer settings'),
+      'panelizer_entity_export'          => t('Panelizer Entity Export'),
     );
   }
 }
