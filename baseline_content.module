@@ -14,7 +14,7 @@
  * - Terms
  */
 
-include('files/baseline_content.panelizer.inc');
+include('includes/baseline_content.panelizer.inc');
 
 function baseline_content_permission() {
   return array(

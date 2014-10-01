@@ -155,7 +155,6 @@ function baseline_content_panelizer_generate_output($output_type) {
       $output[] = '<panelize>';
       if ($output_type == 'panelizer_defaults') {
         baseline_content_panelizer_add_defaults($output, $id);
-        baseline_content_panelizer_add_panel_settings($output, $id);
       }
       else if ($output_type == 'panelizer_entity') {
         baseline_content_panelizer_add_entities($output, $id);
@@ -185,15 +184,19 @@ function baseline_content_panelizer_render_output($output_array, $output_type, &
       }
       else if ($index != 0) {
         // If this XML node is not a closing tag and is not the first line:
-        if (strpos($output_array[$index - 1], '</') === 0) {
+        if (strpos($output_array[$index - 1], '</') === 0 && strpos($output_array[$index], '<') === 0 && strpos($output_array[$index], '</') !== 0) {
+          // If the previous XML node contains a closing tag and this node contains an opening tag,
+          // keep the indent the same.
+        }
+        elseif (strpos($output_array[$index - 1], '</') === 0) {
           // If the previous XML node is a closing tag, reduce the indent.
           $indent -= 2;
         }
-        if (strpos($output_array[$index - 1], '</')) {
+        elseif (strpos($output_array[$index - 1], '</')) {
           // If the previous XML node contains both an opening and a closing tag,
           // (such as <key>value</key>), keep the indent the same.
         }
-        else {
+        elseif (strpos($output_array[$index - 1], '<') === 0){
           // If the previous XML node is an opening tag, increase the indent.
           $indent += 2;
         }
@@ -230,7 +233,7 @@ function baseline_content_panelizer_render_output($output_array, $output_type, &
  */
 function baseline_content_panelizer_add_defaults(&$output, $did) {
   $query = db_select('panelizer_defaults', 'pdef');
-  $query->fields('pdef', array( 'name', 'title', 'panelizer_type', 'panelizer_key', 'no_blocks', 'css_id', 'css', 'pipeline', 'contexts', 'relationships', 'access', 'view_mode', 'css_class', 'title_element', 'link_to_entity', 'extra'));
+  $query->fields('pdef', array('name', 'panelizer_key'));
   $query->condition('pdef.did', $did);
   $query->condition('pdef.name', 'NULL', '<>');
   $result = $query->execute();
@@ -238,21 +241,18 @@ function baseline_content_panelizer_add_defaults(&$output, $did) {
     // Should only be 1.
     baseline_content_xml_add_single($output, 'description', $record->name);
     baseline_content_panelizer_add_variables($output, $record);
-    $output[] = '<panelizer_settings>';
-    baseline_content_panelizer_add_defaults_settings($output, $record);
-    $output[] = '</panelizer_settings>';
+    baseline_content_add_defaults_export($output, $record);
   }
 }
 
-/**
- * Adds the <panelizer_defaults> XML to the Panelizer Defaults output.
- */
-function baseline_content_panelizer_add_defaults_settings(&$output, $record) {
-  $output[] = '<panelizer_defaults>';
-  foreach ($record as $key => $value) {
-    baseline_content_xml_add_single($output, $key, $value);
-  }
-  $output[] = '</panelizer_defaults>';
+function baseline_content_add_defaults_export(&$output, $record) {
+  $output[] = '<panelizer_defaults_export><![CDATA[';
+  $existing_panelizer = panelizer_context_cache_get('default', $record->name);
+  $export = panelizer_export_export_callback($existing_panelizer, NULL);
+  $export_array = explode("\n", $export);
+  $output = array_merge($output, $export_array);
+  $output[] = ']]>';
+  $output[] = '</panelizer_defaults_export>';
 }
 
 /**
@@ -260,11 +260,11 @@ function baseline_content_panelizer_add_defaults_settings(&$output, $record) {
  */
 function baseline_content_panelizer_add_entities(&$output, $entity_id) {
   $query = db_select('panelizer_entity', 'pe');
-  $query->fields('pe', array( 'did', 'entity_id', 'revision_id', 'entity_type', 'name', 'no_blocks', 'css_id', 'css', 'pipeline', 'contexts', 'relationships', 'view_mode', 'css_class', 'title_element', 'link_to_entity', 'extra'));
+  $query->fields('pe', array('entity_id', 'revision_id'));
   $query->condition('pe.entity_id', $entity_id);
   $result = $query->execute();
   // Only grab the latest revision.
-  // TODO: Add revision support.
+  // TODO: Add revision support?
   $highest_revision = array();
   foreach ($result as $record) {
     $highest_revision[$record->entity_id] = $record->revision_id;
@@ -274,37 +274,23 @@ function baseline_content_panelizer_add_entities(&$output, $entity_id) {
   foreach ($result as $record) {
     foreach ($highest_revision as $nid => $rid) {
       if ($record->entity_id == $nid && $record->revision_id == $rid) {
-        $did =  $record->did;
         $node = node_load($record->entity_id);
         baseline_content_xml_add_single($output, 'description', '[' . $node->type . '] ' . $node->title);
         baseline_content_xml_add_single($output, 'entity_title', $node->title);
-        unset($record->entity_id);
-        unset($record->revision_id);
-        unset($record->did);
-        $output[] = '<panelizer_settings>';
-        baseline_content_panelizer_add_entities_settings($output, $record);
-        $output[] = '</panelizer_settings>';
-        baseline_content_panelizer_add_panel_settings($output, $did);
+        baseline_content_add_entities_export($output, $node);
       }
     }
   }
 }
 
-
-/**
- * Adds the <panelizer_entity> XML to the Panelizer Entities output.
- */
-function baseline_content_panelizer_add_entities_settings(&$output, $record) {
-  $output[] = '<panelizer_entity>';
-  foreach ($record as $key => $value) {
-    // The key "name" is peculiar. The database stores this as string "NULL".
-    // To prevent inconsistencies when the value is empty, we'll output "NULL".
-    if ($key == 'name' && empty($value)) {
-      $value = 'NULL';
-    }
-    baseline_content_xml_add_single($output, $key, $value);
-  }
-  $output[] = '</panelizer_entity>';
+function baseline_content_add_entities_export(&$output, $node) {
+  $output[] = '<panelizer_entity_export><![CDATA[';
+  $existing_panelizer = $node->panelizer['page_manager'];
+  $export = panelizer_export_export_callback($existing_panelizer, NULL);
+  $export_array = explode("\n", $export);
+  $output = array_merge($output, $export_array);
+  $output[] = ']]>';
+  $output[] = '</panelizer_entity_export>';
 }
 
 /**
@@ -317,53 +303,4 @@ function baseline_content_panelizer_add_variables(&$output, $record) {
   $variable = serialize(variable_get('panelizer_defaults_node_' . $record->panelizer_key));
   $output[] = '<panelizer_defaults_node_' . $record->panelizer_key . '>' . $variable . '</panelizer_defaults_node_' . $record->panelizer_key . '>';
   $output[] = '</variables>';
-}
-
-/**
- * Adds the <panel_settings> XML to the Panelizer Defaults & Entities output.
- */
-function baseline_content_panelizer_add_panel_settings(&$output, $did) {
-  $output[] = '<panel_settings>';
-  baseline_content_panelizer_add_panels_display($output, $did);
-  baseline_content_panelizer_add_panels_pane($output, $did);
-  $output[] = '</panel_settings>';
-}
-
-/**
- * Adds the <panels_display> XML to the Panelizer Defaults & Entities output.
- */
-function baseline_content_panelizer_add_panels_display(&$output, $did) {
-  $output[] = '<panels_display>';
-  $query = db_select('panels_display', 'pd');
-  $query->fields('pd', array( 'layout', 'layout_settings', 'panel_settings', 'cache', 'title', 'hide_title', 'title_pane', 'uuid'));
-  $query->condition('pd.did', $did);
-  $result = $query->execute();
-  foreach ($result as $record) {
-    // Should only be 1.
-    foreach ($record as $key => $value) {
-      baseline_content_xml_add_single($output, $key, $value);
-    }
-  }
-  $output[] = '</panels_display>';
-}
-
-/**
- * Adds the <panels_pane> XML to the Panelizer Defaults & Entities output.
- */
-function baseline_content_panelizer_add_panels_pane(&$output, $did) {
-  $output[] = '<panels_pane>';
-  $query = db_select('panels_pane', 'pp');
-  $query->fields('pp', array( 'panel', 'type', 'subtype', 'shown', 'access', 'configuration', 'cache', 'style', 'css', 'extras', 'position', 'locks', 'uuid'));
-  $query->condition('pp.did', $did);
-  $result = $query->execute();
-  foreach ($result as $record) {
-    // Can be multiple.
-    $output[] = '<pane>';
-    foreach ($record as $key => $value) {
-      baseline_content_xml_add_single($output, $key, $value);
-    }
-    $output[] = '</pane>';
-  }
-  $output[] = '</panels_pane>';
-  return $output;
 }
