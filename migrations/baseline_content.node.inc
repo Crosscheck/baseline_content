@@ -27,8 +27,8 @@ abstract class BaselineContentNodeMigration extends XMLMigration {
    * @param string $type
    *   The node type to import to.
    */
-  public function __construct($import_file, $type) {
-    parent::__construct();
+  public function __construct(array $arguments, $import_file, $type) {
+    parent::__construct($arguments);
     $this->description = t('Import nodes.');
 
     $this->map = new MigrateSQLMap($this->machineName,
