@@ -17,8 +17,8 @@ class BaselineContentMenuLinksMigration extends Migration {
    *   Optional. The class name of the migration containing nodes this migration
    *   references.
    */
-  public function __construct($import_path, $content_source = '') {
-    parent::__construct();
+  public function __construct(array $arguments, $import_path, $content_source = '') {
+    parent::__construct($arguments);
     $this->description = t('Import menu links.');
 
     $this->map = new MigrateSQLMap($this->machineName,
