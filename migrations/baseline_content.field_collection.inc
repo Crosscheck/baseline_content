@@ -48,7 +48,12 @@ abstract class BaselineContentFieldCollectionMigration extends XMLMigration {
    */
   public function __construct($import_file, $type, $source, $host_type = 'node') {
     parent::__construct();
-    $this->dependencies[] = $source;
+    if (is_array($source)) {
+      $this->dependencies = array_merge($this->dependencies, $source);
+    }
+    else {
+      $this->dependencies[] = $source;
+    }
     $this->host_type = $host_type;
     $this->host_migration = $source;
 
