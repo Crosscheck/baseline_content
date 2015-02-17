@@ -16,8 +16,8 @@ abstract class BaselineContentTermMigration extends Migration {
    * @param string $vocabulary_name
    *   The vocabulary to import to.
    */
-  public function __construct($import_file, $vocabulary_name) {
-    parent::__construct();
+  public function __construct(array $arguments, $import_file, $vocabulary_name) {
+    parent::__construct($arguments);
     $this->description = t('Import terms.');
 
     $this->map = new MigrateSQLMap($this->machineName,
