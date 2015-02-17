@@ -35,8 +35,8 @@ abstract class BaselineContentFilesMigration extends Migration {
    *   An optional Migrate destination object. Defaults to
    *   MigrateDestinationFile.
    */
-  public function __construct($import_path, $files_path = '', $destination = NULL) {
-    parent::__construct();
+  public function __construct(array $arguments, $import_path, $files_path = '', $destination = NULL) {
+    parent::__construct($arguments);
 
     $this->import_path = $import_path;
     $this->files_path = $files_path;
