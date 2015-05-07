@@ -52,7 +52,9 @@ function baseline_content_media_replace_fids($text) {
  * Replace fids before filtering the output.
  */
 function baseline_content_filter_info_alter(&$filters) {
-  $filters['media_filter']['prepare callback'] = 'baseline_content_media_replace_fids';
+  if (isset($filters['media_filter'])) {
+    $filters['media_filter']['prepare callback'] = 'baseline_content_media_replace_fids';
+  }
 }
 
 
