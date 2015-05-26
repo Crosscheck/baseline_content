@@ -1,11 +1,20 @@
 name = Baseline Content
 core = 7.x
 
+dependencies[] = field_collection_deploy
+dependencies[] = entityreference_uuid
 dependencies[] = migrate
 dependencies[] = migrate_extras
+dependencies[] = node_export
+dependencies[] = uuid
+
 files[] = migrations/baseline_content.files.inc
 files[] = migrations/baseline_content.bean.inc
 files[] = migrations/baseline_content.field_collection.inc
 files[] = migrations/baseline_content.node.inc
 files[] = migrations/baseline_content.menu_links.inc
 files[] = migrations/baseline_content.terms.inc
+files[] = migrations/baseline_content.panel.inc
+files[] = migrations/baseline_content.node_export.inc
+files[] = plugins/panel.inc
+files[] = plugins/destinations/node_export.inc

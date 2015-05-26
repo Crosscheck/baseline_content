@@ -1,0 +1,10 @@
+diff --git a/entityreference/behavior/uuid.inc b/entityreference/behavior/uuid.inc
+index 957d5c3..9204595 100755
+--- a/entityreference/behavior/uuid.inc
++++ b/entityreference/behavior/uuid.inc
+@@ -5,4 +5,5 @@ $plugin = array(
+   'description' => t('Add UUID to the reference field.'),
+   'class' => 'UuidEntityReferenceBehavior',
+   'behavior type' => 'field',
++  'force enabled' => TRUE,
+ );

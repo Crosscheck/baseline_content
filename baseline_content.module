@@ -14,6 +14,20 @@
  * - Terms
  */
 
+include('includes/node_export/baseline_content.node_export.export.inc');
+include('includes/node_export/baseline_content.node_export.import.inc');
+include('includes/node_export/baseline_content.node_export.helpers.inc');
+
+/**
+ * Implements hook_hook_info().
+ */
+function baseline_content_hook_info() {
+  $hooks['baseline_content_api'] = array(
+    'group' => 'migrate',
+  );
+  return $hooks;
+}
+
 /**
  * Rollback a migrations.
  *
