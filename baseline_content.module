@@ -36,8 +36,9 @@ function baseline_content_hook_info() {
  */
 function baseline_content_rollback($migration) {
   $migrations = migrate_migrations();
-  $migration_instance = $migrations[$migration];
-  $migration_instance->processRollback(array('force' => TRUE));
+  if (isset($migrations[$migration])) {
+    $migrations[$migration]->processRollback(array('force' => TRUE));
+  }
 }
 
 /**
